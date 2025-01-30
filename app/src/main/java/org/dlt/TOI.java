@@ -8,8 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class TOI {
-    private String filePath = "D:\\Project_java\\toi-formatter\\app\\src\\main\\resources\\";
-    private String outputPath = "D:\\Project_java\\toi-formatter\\app\\src\\main\\resources\\";
+    private String filePath = "D:\\Project_java\\toi-formatter\\app\\my_resources\\";
+    private String outputPath = "D:\\Project_java\\toi-formatter\\app\\my_resources\\";
     private Workbook workbook;
 
     public TOI init(String fullFilePath) {
