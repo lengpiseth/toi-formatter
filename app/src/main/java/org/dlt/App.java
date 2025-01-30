@@ -4,11 +4,14 @@
 package org.dlt;
 
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
+    public static String filePath = null;
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        if (args.length > 0) {
+            filePath = args[0];
+        }
+
+        TOI toi = new TOI();
+        toi.init(filePath).format();
     }
 }
