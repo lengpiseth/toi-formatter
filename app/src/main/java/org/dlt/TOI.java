@@ -3,18 +3,20 @@ package org.dlt;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class TOI {
-    private String filePath = "D:\\Project_java\\toi-formatter\\app\\my_resources\\";
-    private String outputPath = "D:\\Project_java\\toi-formatter\\app\\my_resources\\";
+    private String outputPath;
     private Workbook workbook;
 
-    public TOI init(String fullFilePath) {
-        this.filePath = (fullFilePath == null) ? this.filePath + "toi-example.xlsx" : fullFilePath;
-        try (FileInputStream fis = new FileInputStream(this.filePath)) {
+    public TOI init(String filePath) {
+
+        this.outputPath = new File(filePath).getParent();
+
+        try (FileInputStream fis = new FileInputStream(filePath)) {
             this.workbook = new XSSFWorkbook(fis);
         } catch (IOException e) {
             e.printStackTrace();
@@ -28,11 +30,13 @@ public class TOI {
         // Loop through each sheet
         for (int i = 0; i < sheetCount; i++) {
             Sheet sheet = workbook.getSheetAt(i);
+            workbook.setPrintArea(i,0, sheet.getRow(0).getLastCellNum()-1,0, sheet.getLastRowNum());
 
             this.adjustSheetColumn(sheet, (i+1));
         }
 
-        try (FileOutputStream fos = new FileOutputStream(this.outputPath + "TOI-formatted.xlsx")) {
+        try (FileOutputStream fos = new FileOutputStream(this.outputPath + "\\TOI-formatted.xlsx")) {
+
             workbook.write(fos);
             workbook.close();
         } catch (IOException e) {
