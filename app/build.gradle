@@ -40,11 +40,25 @@ application {
     mainClass = 'org.dlt.App'
 }
 
+version = 'v0.1-' + new Date().format('yyyy-MM-dd_HH_mm')
+jar {
+    manifest {
+        attributes (
+            'Main-Class' : 'org.dlt.App',
+            'Implementation-Version' : version, // Build version
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
 
-tasks.test {
+test {
     enabled = false
 }
