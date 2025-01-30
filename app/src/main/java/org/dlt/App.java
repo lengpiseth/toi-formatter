@@ -3,15 +3,26 @@
  */
 package org.dlt;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class App {
     public static String filePath = null;
+    private static final Logger logger = LogManager.getLogger(App.class);
 
     public static void main(String[] args) {
+        System.setProperty("log4j.configurationFile", "S:\\Project_Java\\toi-formatter\\log4j.xml");
+
+        logger.info("This is just an information about the app");
+
         if (args.length > 0) {
             filePath = args[0];
+
+            TOI toi = new TOI();
+            toi.init(filePath).format();
         }
 
-        TOI toi = new TOI();
-        toi.init(filePath).format();
+
+//            App.class.getProtectionDomain().getCodeSource().getLocation().getPath()
     }
 }

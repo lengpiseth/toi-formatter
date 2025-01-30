@@ -21,8 +21,12 @@ dependencies {
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+
     // This dependency is used by the application.
     implementation libs.guava
+
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0' // for development logging purposes
 
     implementation 'org.apache.poi:poi:5.2.3'
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
@@ -40,7 +44,9 @@ application {
     mainClass = 'org.dlt.App'
 }
 
-version = 'v0.1-' + new Date().format('yyyy-MM-dd_HH_mm')
+group 'org.dlt'
+version = 'v0.1-SNAPSHOT'
+//version = 'v0.1-' + new Date().format('yyyy-MM-dd_HH_mm')
 jar {
     manifest {
         attributes (
