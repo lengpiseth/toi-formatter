@@ -1,14 +1,16 @@
 package org.dlt.model;
 
+import java.time.LocalDate;
+
 class AuditProgram {
     private int id;
     private String programCode;
     private String programNumber;
     private String programType;
-    private Date startDate;
-    private Date endDate;
-    private Date issueDate;
-    private Date createDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private LocalDate issueDate;
+    private LocalDate createDate;
     private Auditor[] auditors;
 
     public int getId() {
@@ -47,29 +49,29 @@ class AuditProgram {
         return this;
     }
 
-    public Date getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public AuditProgram setStartDate(Date startDate) {
+    public AuditProgram setStartDate(LocalDate startDate) {
         this.startDate = startDate;
         return this;
     }
 
-    public Date getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public AuditProgram setEndDate(Date endDate) {
+    public AuditProgram setEndDate(LocalDate endDate) {
         this.endDate = endDate;
         return this;
     }
 
-    public Date getIssueDate() {
+    public LocalDate getIssueDate() {
         return issueDate;
     }
 
-    public AuditProgram setIssueDate(Date issueDate) {
+    public AuditProgram setIssueDate(LocalDate issueDate) {
         this.issueDate = issueDate;
         return this;
     }
@@ -88,11 +90,11 @@ class AuditProgram {
         return this;
     }
 
-    public Date getCreateDate() {
+    public LocalDate getCreateDate() {
         return createDate;
     }
 
-    public AuditProgram setCreateDate(Date createDate) {
+    public AuditProgram setCreateDate(LocalDate createDate) {
         this.createDate = createDate;
         return this;
     }

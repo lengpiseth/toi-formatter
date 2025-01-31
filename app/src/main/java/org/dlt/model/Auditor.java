@@ -50,11 +50,14 @@ class Auditor {
     }
 
     public String getGender() {
-        if (gender == 0) {
-            return "female";
-        } else if (gender == 1) {
-            return "male";
+        String genderStr = "";
+        if (gender == false) {
+            genderStr = "female";
+        } else if (gender == true) {
+            genderStr = "male";
         }
+
+        return genderStr;
     }
 
     public Boolean getGenderValue() {
