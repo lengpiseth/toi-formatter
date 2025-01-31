@@ -1,5 +1,7 @@
 package org.dlt;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -9,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class TOI {
+    private final Logger logger = LogManager.getLogger(this.getClass());
+
     private String outputPath;
     private Workbook workbook;
 
@@ -19,7 +23,7 @@ public class TOI {
         try (FileInputStream fis = new FileInputStream(filePath)) {
             this.workbook = new XSSFWorkbook(fis);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
 
         return this;
@@ -36,11 +40,10 @@ public class TOI {
         }
 
         try (FileOutputStream fos = new FileOutputStream(this.outputPath + "\\TOI-formatted.xlsx")) {
-
             workbook.write(fos);
             workbook.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
 
     }
@@ -50,20 +53,30 @@ public class TOI {
         printSetup.setPaperSize(PrintSetup.A4_PAPERSIZE);
         printSetup.setLandscape(false);
 
-        sheet.setMargin(Sheet.TopMargin, 0.2);
-        sheet.setMargin(Sheet.LeftMargin, 0.2);
-        sheet.setMargin(Sheet.RightMargin, 0.2);
-        sheet.setMargin(Sheet.BottomMargin, 0.2);
+        sheet.setMargin(PageMargin.TOP, 0.2);
+        sheet.setMargin(PageMargin.LEFT, 0.2);
+        sheet.setMargin(PageMargin.RIGHT, 0.2);
+        sheet.setMargin(PageMargin.BOTTOM, 0.2);
+        sheet.setMargin(PageMargin.HEADER, 10);
+        sheet.setMargin(PageMargin.FOOTER, 20);
 
         switch (sheetNumber) {
-            case 4: // BALANCE SHEET
-                sheet.setColumnWidth(0, 256*58);
-                sheet.setColumnWidth(1, 256*6);
-                sheet.setColumnWidth(2, 256*16);
-                sheet.setColumnWidth(3, 256*16);
-                break;
-            case 5:
+            case 2:
 
+                break;
+            case 4: // BALANCE SHEET
+            case 5: // INCOME STATEMENT
+            case 6: // COGS (Manufacturer)
+            case 7: // COGS (Non-Manufacturer)
+            case 8: // TOI Adjustments
+                sheet.setColumnWidth(0, 256*60);
+                sheet.setColumnWidth(1, 256*6);
+                sheet.setColumnWidth(2, 256*17);
+                sheet.setColumnWidth(3, 256*17);
+                break;
+            case 10: // Tax depreciation
+
+                printSetup.setLandscape(true);
                 break;
         }
     }

@@ -11,8 +11,6 @@ public class App {
     private static final Logger logger = LogManager.getLogger(App.class);
 
     public static void main(String[] args) {
-        System.setProperty("log4j.configurationFile", "S:\\Project_Java\\toi-formatter\\log4j.xml");
-
         logger.info("This is just an information about the app");
 
         if (args.length > 0) {
