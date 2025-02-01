@@ -1,12 +1,14 @@
 package org.dlt.model;
 
-class Enterprise {
+import java.util.ArrayList;
+
+public class Enterprise {
     private int id;
     private String tinHead;
     private String tinNumber;
     private String nameEn;
     private String nameKh;
-    private String[] businessActivies;
+    private ArrayList<String> businessActivities =  new ArrayList<>();
     private String houseNumber;
     private String street;
     private String village;
@@ -40,6 +42,10 @@ class Enterprise {
         return this;
     }
 
+    public String getFullTinNumber() {
+        return tinHead +"-"+tinNumber;
+    }
+
     public String getNameEn() {
         return nameEn;
     }
@@ -59,20 +65,20 @@ class Enterprise {
     }
 
     public String getPrimaryBusinessActivity() {
-        return (businessActivies.length >= 0) ? businessActivies[0] : null;
+        return (!businessActivities.isEmpty()) ? businessActivities.get(0) : null;
     }
 
-    public String[] getBusinessActivies() {
-        return businessActivies;
+    public ArrayList<String> getBusinessActivities() {
+        return businessActivities;
     }
 
-    public Enterprise setBusinessActivies(String[] businessActivies) {
-        this.businessActivies = businessActivies;
+    public Enterprise setBusinessActivities(ArrayList<String> businessActivities) {
+        this.businessActivities = businessActivities;
         return this;
     }
 
     public Enterprise addBusinessActivity(String businessActivity) {
-        businessActivies[businessActivies.length - 1] = businessActivity;
+        businessActivities.add(businessActivity);
         return this;
     }
 
@@ -122,6 +128,6 @@ class Enterprise {
     }
 
     public String getFullAddress() {
-        return "#"+this.getHouseNumber() +" Street:"+ this.getStreet() +"Village:"+ this.getVillage() +" Disctrict:"+ this.getDistrict() +" City:"+ this.getCity();
+        return "#"+this.getHouseNumber() +", Street:"+ this.getStreet() +", Village:"+ this.getVillage() +", District:"+ this.getDistrict() +", City:"+ this.getCity();
     }
 }
