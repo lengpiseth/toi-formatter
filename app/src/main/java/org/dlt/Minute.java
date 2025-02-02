@@ -14,6 +14,7 @@ import java.io.IOException;
 
 class Minute {
     private String title;
+    private boolean reportGenerated = false;
     private static final Logger logger = LogManager.getLogger(Minute.class);
 
     private final String[] placeholders = {
@@ -114,6 +115,8 @@ class Minute {
 
                 fis.close();
                 docx.close();
+
+                this.reportGenerated = true;
             } catch (IOException e) {
                 logger.error(e.getMessage());
             }
@@ -128,5 +131,9 @@ class Minute {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isReportGenerated() {
+        return reportGenerated;
     }
 }
