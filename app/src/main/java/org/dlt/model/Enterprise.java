@@ -1,19 +1,40 @@
 package org.dlt.model;
 
+import jakarta.persistence.*;
+
 import java.util.ArrayList;
 
+@Entity
+@Table(name="enterprises")
 public class Enterprise {
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private int id;
+    @Column(nullable=false)
     private String tinHead;
+    @Column(unique=true, nullable=false)
     private String tinNumber;
+    @Column(nullable=false)
     private String nameEn;
+    @Column(nullable=false)
     private String nameKh;
     private ArrayList<String> businessActivities =  new ArrayList<>();
+    @Column(nullable=false)
+    private String fullAddress;
     private String houseNumber;
     private String street;
     private String village;
     private String district;
     private String city;
+
+    public Enterprise() {}
+
+    public Enterprise(String tinHead, String tinNumber, String nameEn, String nameKh) {
+        this.setTinHead(tinHead);
+        this.setTinNumber(tinNumber);
+        this.setNameEn(nameEn);
+        this.setNameKh(nameKh);
+    }
 
     public int getId() {
         return id;
@@ -127,7 +148,16 @@ public class Enterprise {
         return this;
     }
 
+//    public String getFullAddress1() {
+//        return "#"+this.getHouseNumber() +", Street:"+ this.getStreet() +", Village:"+ this.getVillage() +", District:"+ this.getDistrict() +", City:"+ this.getCity();
+//    }
+
+    public Enterprise setFullAddress(String fullAddress) {
+        this.fullAddress = fullAddress;
+        return this;
+    }
+
     public String getFullAddress() {
-        return "#"+this.getHouseNumber() +", Street:"+ this.getStreet() +", Village:"+ this.getVillage() +", District:"+ this.getDistrict() +", City:"+ this.getCity();
+        return fullAddress;
     }
 }

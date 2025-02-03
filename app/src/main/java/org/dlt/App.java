@@ -2,6 +2,7 @@ package org.dlt;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.dlt.view.EnterpriseView;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,9 +26,11 @@ public class App {
         minute.init();
         */
 
-        SwingUtilities.invokeLater(App::showStartupScreen);
-    }
+//        SwingUtilities.invokeLater(App::showStartupScreen);
 
+        new EnterpriseView();
+    }
+/*
     public static void showStartupScreen() {
         DatabaseHelper.initializeDatabase();
         List<String> enterprises = DatabaseHelper.getEnterprises();
@@ -49,5 +52,5 @@ public class App {
 
         // Show frame
         frame.setVisible(true);
-    }
+    }*/
 }
