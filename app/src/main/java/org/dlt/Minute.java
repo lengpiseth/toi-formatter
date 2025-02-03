@@ -38,8 +38,7 @@ class Minute {
                 .setTinNumber("105006282")
                 .setNameKh("ម៉េង យី ហ្គាមេន ឯ.ក")
                 .setNameEn("Meng Yee Garment Co., Ltd.")
-                .addBusinessActivity("Steel Smelting Factory")
-                .setHouseNumber("168").setStreet("396").setCity("Phnom Penh");
+                .setFullAddress("#3, Street 112, Sangkat Psar Thmei, Khan Duan Penh, Phnom Penh");
 
         this.createReport302FromTemplate(enterprise);
     }

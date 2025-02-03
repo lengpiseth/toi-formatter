@@ -12,6 +12,7 @@ public class EnterpriseController {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         Enterprise enterprise = new Enterprise(tinHead, tinNumber, nameEn, nameKh);
+        enterprise.setFullAddress("#168, Street 256, Sangkat Psar Kandal, Khan Daun Penh, Phnom Penh");
         session.save(enterprise);
         tx.commit();
         session.close();
@@ -19,7 +20,7 @@ public class EnterpriseController {
 
     public static List<Enterprise> getEnterprises() {
         Session session = HibernateUtil.getSessionFactory().openSession();
-        List<Enterprise> enterprises = session.createQuery("FROM enterprise", Enterprise.class).list();
+        List<Enterprise> enterprises = session.createQuery("FROM Enterprise ORDER BY nameEn ASC", Enterprise.class).list();
         session.close();
         return enterprises;
     }
@@ -31,6 +32,7 @@ public class EnterpriseController {
         if (enterprise != null) {
             session.delete(enterprise);
         }
+
         tx.commit();
         session.close();
     }
