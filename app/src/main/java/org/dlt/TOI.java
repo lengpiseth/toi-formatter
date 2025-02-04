@@ -61,8 +61,29 @@ public class TOI {
         sheet.setMargin(PageMargin.FOOTER, 20);
 
         switch (sheetNumber) {
-            case 2:
-
+            case 1: // GENERAL INFO
+                printSetup.setLandscape(true);
+                sheet.setColumnWidth(0, 256*34);
+                sheet.setColumnWidth(1, 256*34);
+                sheet.setColumnWidth(2, 256*25);
+                sheet.setColumnWidth(3, 256*34);
+                break;
+            case 2: // SHAREHOLDERS INFO
+                sheet.setColumnWidth(0, 256*5);
+                sheet.setColumnWidth(1, 256*17);
+                sheet.setColumnWidth(2, 256*16);
+                sheet.setColumnWidth(3, 256*15);
+                sheet.setColumnWidth(4, 256*6);
+                sheet.setColumnWidth(5, 256*16);
+                sheet.setColumnWidth(6, 256*6);
+                sheet.setColumnWidth(7, 256*16);
+                break;
+            case 3: // OVERALL EMPLOYEES INFO
+                sheet.setColumnWidth(0, 256*36);
+                sheet.setColumnWidth(1, 256*15);
+                sheet.setColumnWidth(2, 256*7);
+                sheet.setColumnWidth(3, 256*18);
+                sheet.setColumnWidth(4, 256*18);
                 break;
             case 4: // BALANCE SHEET
             case 5: // INCOME STATEMENT
@@ -76,6 +97,25 @@ public class TOI {
                 break;
             case 10: // Tax depreciation
 
+                printSetup.setLandscape(true);
+                break;
+            case 11:
+                sheet.setColumnWidth(0, 256*18);
+                sheet.setColumnWidth(1, 256*19);
+                sheet.setColumnWidth(2, 256*19);
+                sheet.setColumnWidth(3, 256*19);
+                sheet.setColumnWidth(4, 256*19);
+                break;
+            case 12: // TAX ALLOWANCE FOR SURPLUS OR DEDUCTION FROM SELLING/DISPOSE OF LONG-TERM ASSET
+                printSetup.setLandscape(true);
+                break;
+            case 13: // PROVISION
+                sheet.setColumnWidth(0, 256*5);
+                sheet.setColumnWidth(1, 256*50);
+                sheet.setColumnWidth(2, 256*20);
+                sheet.setColumnWidth(3, 256*20);
+                sheet.setColumnWidth(4, 256*20);
+                sheet.setColumnWidth(5, 256*20);
                 printSetup.setLandscape(true);
                 break;
         }

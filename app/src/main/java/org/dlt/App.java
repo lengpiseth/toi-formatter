@@ -4,10 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dlt.view.EnterpriseView;
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
-
 public class App {
     public static String filePath = null;
     private static final Logger logger = LogManager.getLogger(App.class);
@@ -19,6 +15,8 @@ public class App {
 
             TOI toi = new TOI();
             toi.init(filePath).format();
+        } else if (args.length == 0) {
+            new EnterpriseView();
         }
 
         /*
@@ -27,8 +25,6 @@ public class App {
         */
 
 //        SwingUtilities.invokeLater(App::showStartupScreen);
-
-        new EnterpriseView();
     }
 /*
     public static void showStartupScreen() {
