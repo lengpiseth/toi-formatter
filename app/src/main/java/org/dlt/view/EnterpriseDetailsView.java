@@ -14,9 +14,9 @@ public class EnterpriseDetailsView extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new GridLayout(3,1));
 
-        fullTinNumberLabel  = new JLabel("TIN: " + enterprise.getFullTinNumber());
-        nameEnLabel         = new JLabel("Name EN: "+enterprise.getNameEn());
-        fullAddressLabel    = new JLabel("Full Address: "+enterprise.getFullAddress());
+        fullTinNumberLabel  = new JLabel("TIN Number: " + enterprise.getFullTinNumber());
+        nameEnLabel         = new JLabel("Enterprise Name (En): "+enterprise.getNameEn());
+        fullAddressLabel    = new JLabel("Registered Address: "+enterprise.getFullAddress());
 
         add(fullTinNumberLabel);
         add(nameEnLabel);

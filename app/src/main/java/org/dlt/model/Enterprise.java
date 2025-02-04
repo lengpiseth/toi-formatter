@@ -36,7 +36,7 @@ public class Enterprise {
 
     @Override
     public String toString() {
-        return "("+this.getFullTinNumber()+") " + this.getNameEn();
+        return this.getId()+" - ("+this.getFullTinNumber()+") " + this.getNameEn();
     }
 
     public Long getId() {
