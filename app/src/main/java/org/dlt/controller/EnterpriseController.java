@@ -25,7 +25,7 @@ public class EnterpriseController {
         return enterprises;
     }
 
-    public static void deleteEnterprise(int id) {
+    public static void deleteEnterprise(long id) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         Enterprise enterprise = session.get(Enterprise.class, id);
