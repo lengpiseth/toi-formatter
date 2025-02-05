@@ -1,11 +1,14 @@
 package org.dlt;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.PageMargin;
+import org.apache.poi.ss.usermodel.PrintSetup;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,11 +20,15 @@ public class TOI {
     private Workbook workbook;
 
     public TOI init(String filePath) {
-
-        this.outputPath = new File(filePath).getParent();
+        String newFileName = FilenameUtils.getBaseName(filePath)+" - formatted."+FilenameUtils.getExtension(filePath);
+        this.outputPath = FilenameUtils.concat(FilenameUtils.getPath(filePath), newFileName);
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
-            this.workbook = new XSSFWorkbook(fis);
+            if (FilenameUtils.isExtension(filePath, "xlsx")) {
+                this.workbook = new XSSFWorkbook(fis);
+            } else {
+                logger.warn("Not an XLSX file!!!");
+            }
         } catch (IOException e) {
             logger.error(e.getMessage());
         }
@@ -30,22 +37,23 @@ public class TOI {
     }
 
     public void format() {
-        int sheetCount = workbook.getNumberOfSheets();
-        // Loop through each sheet
-        for (int i = 0; i < sheetCount; i++) {
-            Sheet sheet = workbook.getSheetAt(i);
-            workbook.setPrintArea(i,0, sheet.getRow(0).getLastCellNum()-1,0, sheet.getLastRowNum());
+        if (workbook != null) {
+            int sheetCount = workbook.getNumberOfSheets();
+            // Loop through each sheet
+            for (int i = 0; i < sheetCount; i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                workbook.setPrintArea(i, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
-            this.adjustSheetColumn(sheet, (i+1));
+                this.adjustSheetColumn(sheet, (i + 1));
+            }
+
+            try (FileOutputStream fos = new FileOutputStream(this.outputPath)) {
+                workbook.write(fos);
+                workbook.close();
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
         }
-
-        try (FileOutputStream fos = new FileOutputStream(this.outputPath + "\\TOI-formatted.xlsx")) {
-            workbook.write(fos);
-            workbook.close();
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-        }
-
     }
 
     private void adjustSheetColumn(Sheet sheet, int sheetNumber) {
@@ -95,6 +103,15 @@ public class TOI {
                 sheet.setColumnWidth(2, 256*17);
                 sheet.setColumnWidth(3, 256*17);
                 break;
+            case 9: // DONATION, INTEREST, and TAXABLE PROFIT or LOST BROUGHT FORWARD
+                sheet.setColumnWidth(0, 256*12);
+                sheet.setColumnWidth(1, 256*16);
+                sheet.setColumnWidth(2, 256*16);
+                sheet.setColumnWidth(3, 256*10);
+                sheet.setColumnWidth(4, 256*16);
+                sheet.setColumnWidth(5, 256*16);
+                sheet.setColumnWidth(6, 256*16);
+                break;
             case 10: // Tax depreciation
 
                 printSetup.setLandscape(true);
@@ -106,7 +123,16 @@ public class TOI {
                 sheet.setColumnWidth(3, 256*19);
                 sheet.setColumnWidth(4, 256*19);
                 break;
-            case 12: // TAX ALLOWANCE FOR SURPLUS OR DEDUCTION FROM SELLING/DISPOSE OF LONG-TERM ASSET
+            case 12: // TAXABLE SURPLUS OR DEDUCTION FROM SELLING/DISPOSE OF LONG-TERM ASSET
+                sheet.setColumnWidth(0, 256*37);
+                sheet.setColumnWidth(1, 256*10);
+                sheet.setColumnWidth(2, 256*10);
+                sheet.setColumnWidth(3, 256*15);
+                sheet.setColumnWidth(4, 256*15);
+                sheet.setColumnWidth(5, 256*13);
+                sheet.setColumnWidth(6, 256*13);
+                sheet.setColumnWidth(7, 256*13);
+                sheet.setColumnWidth(8, 256*13);
                 printSetup.setLandscape(true);
                 break;
             case 13: // PROVISION
@@ -117,6 +143,26 @@ public class TOI {
                 sheet.setColumnWidth(4, 256*20);
                 sheet.setColumnWidth(5, 256*20);
                 printSetup.setLandscape(true);
+                break;
+            case 14: // RELATED PARTIES' TRANSACTION TABLE
+                sheet.setColumnWidth(0, 256*5);
+                sheet.setColumnWidth(1, 256*18);
+                sheet.setColumnWidth(2, 256*18);
+                sheet.setColumnWidth(3, 256*39);
+                sheet.setColumnWidth(4, 256*17);
+                break;
+            case 15: // FIXED ASSETS LISTING TABLE
+                sheet.setColumnWidth(0, 256*11);
+                sheet.setColumnWidth(1, 256*20);
+                sheet.setColumnWidth(2, 256*15);
+                sheet.setColumnWidth(3, 256*15);
+                sheet.setColumnWidth(4, 256*15);
+                sheet.setColumnWidth(5, 256*15);
+                break;
+            case 16: // TAX ON INCOME FROM ORE EXTRACTION ACTIVITIES
+                sheet.setColumnWidth(0, 256*60);
+                sheet.setColumnWidth(1, 256*8);
+                sheet.setColumnWidth(2, 256*28);
                 break;
         }
     }
