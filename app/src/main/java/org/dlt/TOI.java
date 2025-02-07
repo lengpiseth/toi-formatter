@@ -41,11 +41,13 @@ public class TOI {
             // Loop through each sheet
             for (int s = 0; s < sheetCount; s++) {
                 Sheet sheet = workbook.getSheetAt(s);
-                String sheetName = sheet.getSheetName();
-                if (sheetName.toLowerCase().startsWith("step")) {
+                String sheetName = sheet.getSheetName().toLowerCase();
+                if (sheetName.startsWith("step")) {
+                    int sheetNumber = Integer.parseInt(sheetName.replace("step",""));
+
                     workbook.setPrintArea(s, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
-                    this.adjustSheet(sheet, (s + 1));
+                    this.adjustSheet(sheet, sheetNumber);
                 }
             }
 
