@@ -39,11 +39,14 @@ public class TOI {
         if (workbook != null) {
             int sheetCount = workbook.getNumberOfSheets();
             // Loop through each sheet
-            for (int i = 0; i < sheetCount; i++) {
-                Sheet sheet = workbook.getSheetAt(i);
-                workbook.setPrintArea(i, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
+            for (int s = 0; s < sheetCount; s++) {
+                Sheet sheet = workbook.getSheetAt(s);
+                String sheetName = sheet.getSheetName();
+                if (sheetName.toLowerCase().startsWith("step")) {
+                    workbook.setPrintArea(s, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
-                this.adjustSheet(sheet, (i + 1));
+                    this.adjustSheet(sheet, (s + 1));
+                }
             }
 
             try (FileOutputStream fos = new FileOutputStream(this.outputPath)) {
