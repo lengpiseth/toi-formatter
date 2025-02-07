@@ -3,10 +3,9 @@ package org.dlt;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.PageMargin;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
@@ -44,7 +43,7 @@ public class TOI {
                 Sheet sheet = workbook.getSheetAt(i);
                 workbook.setPrintArea(i, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
-                this.adjustSheetColumn(sheet, (i + 1));
+                this.adjustSheet(sheet, (i + 1));
             }
 
             try (FileOutputStream fos = new FileOutputStream(this.outputPath)) {
@@ -56,7 +55,7 @@ public class TOI {
         }
     }
 
-    private void adjustSheetColumn(Sheet sheet, int sheetNumber) {
+    private void adjustSheet(Sheet sheet, int sheetNumber) {
         PrintSetup printSetup = sheet.getPrintSetup();
         printSetup.setPaperSize(PrintSetup.A4_PAPERSIZE);
         printSetup.setLandscape(false);
@@ -67,6 +66,10 @@ public class TOI {
         sheet.setMargin(PageMargin.BOTTOM, 0.2);
         sheet.setMargin(PageMargin.HEADER, 10);
         sheet.setMargin(PageMargin.FOOTER, 20);
+
+        ((XSSFSheet) sheet).setTabColor(new XSSFColor());
+
+        this.adjustCellFont(sheet);
 
         switch (sheetNumber) {
             case 1: // GENERAL INFO
@@ -113,8 +116,12 @@ public class TOI {
                 sheet.setColumnWidth(6, 256*16);
                 break;
             case 10: // Tax depreciation
-
+                printSetup.setFitWidth((short) 1);
+                printSetup.setFitHeight((short) 0);
                 printSetup.setLandscape(true);
+
+                sheet.setAutobreaks(true);
+                sheet.setFitToPage(true);
                 break;
             case 11:
                 sheet.setColumnWidth(0, 256*18);
@@ -153,17 +160,39 @@ public class TOI {
                 break;
             case 15: // FIXED ASSETS LISTING TABLE
                 sheet.setColumnWidth(0, 256*11);
-                sheet.setColumnWidth(1, 256*20);
-                sheet.setColumnWidth(2, 256*15);
-                sheet.setColumnWidth(3, 256*15);
-                sheet.setColumnWidth(4, 256*15);
-                sheet.setColumnWidth(5, 256*15);
+                sheet.setColumnWidth(1, 256*21);
+                sheet.setColumnWidth(2, 256*16);
+                sheet.setColumnWidth(3, 256*16);
+                sheet.setColumnWidth(4, 256*16);
+                sheet.setColumnWidth(5, 256*16);
                 break;
             case 16: // TAX ON INCOME FROM ORE EXTRACTION ACTIVITIES
                 sheet.setColumnWidth(0, 256*60);
                 sheet.setColumnWidth(1, 256*8);
                 sheet.setColumnWidth(2, 256*28);
                 break;
+        }
+    }
+
+    private void adjustCellFont(Sheet sheet) {
+        for (int r=0; r <= sheet.getLastRowNum(); r++) {
+            Row row = sheet.getRow(r);
+            if (row != null) {
+                for (int c=0; c <= row.getLastCellNum(); c++) {
+                    Cell cell = row.getCell(c);
+                    if (cell != null) {
+                        CellStyle originCellStyle = cell.getCellStyle();
+                        CellStyle newStyle = this.workbook.createCellStyle();
+                        newStyle.cloneStyleFrom(originCellStyle);
+
+                        Font font = this.workbook.createFont();
+                        font.setFontName("Khmer OS Siemreap");
+                        font.setFontHeightInPoints((short) 9);
+                        newStyle.setFont(font);
+                        cell.setCellStyle(newStyle);
+                    }
+                }
+            }
         }
     }
 }
