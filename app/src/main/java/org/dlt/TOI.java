@@ -71,17 +71,6 @@ public class TOI {
             Sheet ratioSheet = this.workbook.createSheet(sheetName);
             this.workbook.setSheetOrder(sheetName, 0);
 
-            CellStyle style = workbook.createCellStyle();
-            Font font = workbook.createFont();
-            font.setFontName("Khmer OS Siemreap");
-            font.setFontHeightInPoints((short) 9);
-            style.setFont(font);
-            ratioSheet.setDefaultColumnStyle(0, style);
-            ratioSheet.setDefaultColumnStyle(1, style);
-            ratioSheet.setDefaultColumnStyle(2, style);
-            ratioSheet.setDefaultColumnStyle(3, style);
-            ratioSheet.setDefaultColumnStyle(4, style);
-
             Row row0 = ratioSheet.createRow(0);
             row0.createCell(0).setCellValue("RATIO NAME");
             row0.createCell(1).setCellValue("BENCHMARK");
@@ -91,10 +80,25 @@ public class TOI {
             RatioList ratioList = new RatioList();
             for (int i=0; i < ratioList.getList().size(); i++) {
                 RatioModel ratio = ratioList.getList().get(i);
+
+                CellStyle percentStyle = workbook.createCellStyle();
+                DataFormat format = workbook.createDataFormat();
+                percentStyle.setDataFormat(format.getFormat(ratio.getExcelFormatText()));
+
                 Row row = ratioSheet.createRow(i+1);
-                row.createCell(0).setCellValue(ratio.getName());
-                row.createCell(2).setCellFormula(ratio.getFormulaExcel());
+
+                Cell ratioCell = row.createCell(0);
+                ratioCell.setCellValue(ratio.getName());
+
+                Cell ratioData = row.createCell(2);
+                ratioData.setCellFormula(ratio.getExcelFormula());
+                ratioData.setCellStyle(percentStyle);
             }
+            ratioSheet.setColumnWidth(0, 256*40);
+            ratioSheet.setColumnWidth(1, 256*15);
+            ratioSheet.setColumnWidth(2, 256*15);
+            ratioSheet.setColumnWidth(3, 256*15);
+            this.workbook.setActiveSheet(0);
         }
     }
 
