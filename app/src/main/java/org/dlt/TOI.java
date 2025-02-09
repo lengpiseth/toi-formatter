@@ -7,6 +7,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.dlt.model.RatioList;
+import org.dlt.model.RatioModel;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -51,11 +53,47 @@ public class TOI {
                 }
             }
 
+            // Create ratio sheet
+            this.createRatioSheet();
+
             try (FileOutputStream fos = new FileOutputStream(this.outputPath)) {
                 workbook.write(fos);
                 workbook.close();
             } catch (IOException e) {
                 logger.error(e.getMessage());
+            }
+        }
+    }
+
+    private void createRatioSheet() {
+        String sheetName = "RATIO";
+        if (this.workbook.getSheet(sheetName) == null) {
+            Sheet ratioSheet = this.workbook.createSheet(sheetName);
+            this.workbook.setSheetOrder(sheetName, 0);
+
+            CellStyle style = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setFontName("Khmer OS Siemreap");
+            font.setFontHeightInPoints((short) 9);
+            style.setFont(font);
+            ratioSheet.setDefaultColumnStyle(0, style);
+            ratioSheet.setDefaultColumnStyle(1, style);
+            ratioSheet.setDefaultColumnStyle(2, style);
+            ratioSheet.setDefaultColumnStyle(3, style);
+            ratioSheet.setDefaultColumnStyle(4, style);
+
+            Row row0 = ratioSheet.createRow(0);
+            row0.createCell(0).setCellValue("RATIO NAME");
+            row0.createCell(1).setCellValue("BENCHMARK");
+            row0.createCell(2).setCellValue("DATA (N)");
+            row0.createCell(3).setCellValue("DATA (N-1)");
+
+            RatioList ratioList = new RatioList();
+            for (int i=0; i < ratioList.getList().size(); i++) {
+                RatioModel ratio = ratioList.getList().get(i);
+                Row row = ratioSheet.createRow(i+1);
+                row.createCell(0).setCellValue(ratio.getName());
+                row.createCell(2).setCellFormula(ratio.getFormulaExcel());
             }
         }
     }

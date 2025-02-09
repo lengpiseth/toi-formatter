@@ -15,7 +15,8 @@ public class App {
 
             TOI toi = new TOI();
             toi.init(filePath).format();
-        } else if (args.length == 0) {
+        }
+        else if (args.length == 0) {
             new EnterpriseView();
         }
 
