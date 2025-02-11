@@ -8,7 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dlt.model.RatioList;
-import org.dlt.model.RatioModel;
+import org.dlt.model.Ratio;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -76,10 +76,11 @@ public class TOI {
             row0.createCell(1).setCellValue("BENCHMARK");
             row0.createCell(2).setCellValue("DATA (N)");
             row0.createCell(3).setCellValue("DATA (N-1)");
+            row0.createCell(4).setCellValue("DESCRIPTION");
 
             RatioList ratioList = new RatioList();
             for (int i=0; i < ratioList.getList().size(); i++) {
-                RatioModel ratio = ratioList.getList().get(i);
+                Ratio ratio = ratioList.getList().get(i);
 
                 CellStyle percentStyle = workbook.createCellStyle();
                 DataFormat format = workbook.createDataFormat();
@@ -93,11 +94,15 @@ public class TOI {
                 Cell ratioData = row.createCell(2);
                 ratioData.setCellFormula(ratio.getExcelFormula());
                 ratioData.setCellStyle(percentStyle);
+
+                Cell ratioDescription = row.createCell(4);
+                ratioDescription.setCellValue(ratio.getDescription());
             }
             ratioSheet.setColumnWidth(0, 256*40);
             ratioSheet.setColumnWidth(1, 256*15);
             ratioSheet.setColumnWidth(2, 256*15);
             ratioSheet.setColumnWidth(3, 256*15);
+            ratioSheet.setColumnWidth(4, 256*50);
             this.workbook.setActiveSheet(0);
         }
     }
