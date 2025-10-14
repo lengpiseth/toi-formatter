@@ -7,12 +7,15 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.dlt.model.RatioList;
 import org.dlt.model.Ratio;
+import org.dlt.model.RatioList;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class TOI {
     private final Logger logger = LogManager.getLogger(this.getClass());
@@ -39,15 +42,13 @@ public class TOI {
 
     public void format() {
         if (workbook != null) {
-            int sheetCount = workbook.getNumberOfSheets();
-            // Loop through each sheet
-            for (int s = 0; s < sheetCount; s++) {
-                Sheet sheet = workbook.getSheetAt(s);
+            int sheetIndex = 0;
+            for (Sheet sheet : workbook) {
                 String sheetName = sheet.getSheetName().toLowerCase();
-                if (sheetName.startsWith("step")) {
+                if (sheetName.contains("step")) {
                     int sheetNumber = Integer.parseInt(sheetName.replace("step",""));
 
-                    workbook.setPrintArea(s, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
+                    workbook.setPrintArea(sheetIndex, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
                     this.adjustSheet(sheet, sheetNumber);
                 }
@@ -103,6 +104,7 @@ public class TOI {
             ratioSheet.setColumnWidth(2, 256*15);
             ratioSheet.setColumnWidth(3, 256*15);
             ratioSheet.setColumnWidth(4, 256*50);
+
             this.workbook.setActiveSheet(0);
         }
     }
@@ -163,7 +165,7 @@ public class TOI {
                 sheet.setColumnWidth(1, 256*16);
                 sheet.setColumnWidth(2, 256*16);
                 sheet.setColumnWidth(3, 256*10);
-                sheet.setColumnWidth(4, 256*16);
+                sheet.setColumnWidth(4, 256*10);
                 sheet.setColumnWidth(5, 256*16);
                 sheet.setColumnWidth(6, 256*16);
                 break;
@@ -227,24 +229,59 @@ public class TOI {
     }
 
     private void adjustCellFont(Sheet sheet) {
-        for (int r=0; r <= sheet.getLastRowNum(); r++) {
-            Row row = sheet.getRow(r);
-            if (row != null) {
-                for (int c=0; c <= row.getLastCellNum(); c++) {
-                    Cell cell = row.getCell(c);
-                    if (cell != null) {
-                        CellStyle originCellStyle = cell.getCellStyle();
-                        CellStyle newStyle = this.workbook.createCellStyle();
-                        newStyle.cloneStyleFrom(originCellStyle);
+        Set<String> targetValues = Set.of("A0", "A13", "A28", "A29", "A37", "A42", "B0", "B7", "B8","B12","B22","B42","B46","B48", "C4", "C6","C7","C17","C20","D3","D7","D9");
+        List<Integer> rowToHighlight = new ArrayList<>();
 
-                        Font font = this.workbook.createFont();
-                        font.setFontName("Khmer OS Siemreap");
-                        font.setFontHeightInPoints((short) 9);
-                        newStyle.setFont(font);
-                        cell.setCellStyle(newStyle);
-                    }
+        for (Row row : sheet) {
+            for (Cell cell : row) {
+                CellStyle originCellStyle = cell.getCellStyle();
+                CellStyle newStyle = this.workbook.createCellStyle();
+                newStyle.cloneStyleFrom(originCellStyle);
+
+                Font font = this.workbook.createFont();
+                font.setFontName("Khmer OS Siemreap");
+                font.setFontHeightInPoints((short) 9);
+                newStyle.setFont(font);
+                cell.setCellStyle(newStyle);
+
+                if(cell.getCellType() == CellType.STRING && targetValues.contains(cell.getStringCellValue().trim())) {
+                    rowToHighlight.add(row.getRowNum());
                 }
             }
         }
+
+        for(Integer row : rowToHighlight) {
+            for(int col = 0; col < 4; col++) {
+                Cell hightlightCell = sheet.getRow(row).getCell(col);
+
+                CellStyle originCellStyle = hightlightCell.getCellStyle();
+                CellStyle hightlightCellStyle = this.workbook.createCellStyle();
+                hightlightCellStyle.cloneStyleFrom(originCellStyle);
+
+                String hexColor = "#DDD9C4";
+                byte[] rgb = hexStringToRGB(hexColor);
+                XSSFColor xssfColor = new XSSFColor(rgb);
+                hightlightCellStyle.setFillForegroundColor(xssfColor);
+                hightlightCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+                hightlightCell.setCellStyle(hightlightCellStyle);
+            }
+        }
+    }
+
+    private byte[] hexStringToRGB(String hex) {
+        if(hex.startsWith("#")) {
+            hex = hex.substring(1);
+        }
+        if(hex.length() != 6) {
+            throw new IllegalArgumentException("Invalid hexadecimal string: " + hex);
+        }
+
+        byte[] rgb = new byte[3];
+        rgb[0] = (byte) Integer.parseInt(hex.substring(0, 2), 16); // Red
+        rgb[1] = (byte) Integer.parseInt(hex.substring(2, 4), 16); // Green
+        rgb[2] = (byte) Integer.parseInt(hex.substring(4, 6), 16); // Blue
+
+        return rgb;
     }
 }

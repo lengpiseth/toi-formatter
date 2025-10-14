@@ -52,7 +52,7 @@ application {
 }
 
 group 'org.dlt'
-version = 'v0.1-SNAPSHOT'
+version = 'v0.2-SNAPSHOT'
 //version = 'v0.1-' + new Date().format('yyyy-MM-dd_HH_mm')
 jar {
     manifest {
