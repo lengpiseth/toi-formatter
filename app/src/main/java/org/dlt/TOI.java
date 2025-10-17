@@ -46,7 +46,10 @@ public class TOI {
             for (Sheet sheet : workbook) {
                 String sheetName = sheet.getSheetName().toLowerCase();
                 if (sheetName.contains("step")) {
-                    int sheetNumber = Integer.parseInt(sheetName.replace("step",""));
+                    int sheetNumber = 0;
+                    try {
+                        sheetNumber = Integer.parseInt(sheetName.replace("step",""));
+                    } catch (NumberFormatException ignored) {}
 
                     workbook.setPrintArea(sheetIndex, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
 
@@ -114,12 +117,16 @@ public class TOI {
         printSetup.setPaperSize(PrintSetup.A4_PAPERSIZE);
         printSetup.setLandscape(false);
 
-        sheet.setMargin(PageMargin.TOP, 0.2);
-        sheet.setMargin(PageMargin.LEFT, 0.2);
-        sheet.setMargin(PageMargin.RIGHT, 0.2);
-        sheet.setMargin(PageMargin.BOTTOM, 0.2);
-        sheet.setMargin(PageMargin.HEADER, 10);
-        sheet.setMargin(PageMargin.FOOTER, 20);
+        sheet.setHorizontallyCenter(true);
+
+        double cmToInch = 2.54;
+
+        sheet.setMargin(PageMargin.TOP, 1/cmToInch);
+        sheet.setMargin(PageMargin.BOTTOM, 1/cmToInch);
+        sheet.setMargin(PageMargin.LEFT, 0.5/cmToInch);
+        sheet.setMargin(PageMargin.RIGHT, 0.5/cmToInch);
+        sheet.setMargin(PageMargin.HEADER, 0.5/cmToInch);
+        sheet.setMargin(PageMargin.FOOTER, 0.5/cmToInch);
 
         ((XSSFSheet) sheet).setTabColor(new XSSFColor());
 
@@ -233,6 +240,7 @@ public class TOI {
         List<Integer> rowToHighlight = new ArrayList<>();
 
         for (Row row : sheet) {
+//            row.setHeight((short)-1);
             for (Cell cell : row) {
                 CellStyle originCellStyle = cell.getCellStyle();
                 CellStyle newStyle = this.workbook.createCellStyle();
