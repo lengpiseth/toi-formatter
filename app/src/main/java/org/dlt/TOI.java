@@ -240,7 +240,7 @@ public class TOI {
         List<Integer> rowToHighlight = new ArrayList<>();
 
         for (Row row : sheet) {
-//            row.setHeight((short)-1);
+            row.setHeight((short)-1);
             for (Cell cell : row) {
                 CellStyle originCellStyle = cell.getCellStyle();
                 CellStyle newStyle = this.workbook.createCellStyle();
@@ -251,6 +251,13 @@ public class TOI {
                 font.setFontHeightInPoints((short) 9);
                 newStyle.setFont(font);
                 cell.setCellStyle(newStyle);
+
+                if(row.getRowNum() == 4 && (cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3)) {
+                    CellStyle wrappedStyle = this.workbook.createCellStyle();
+                    wrappedStyle.cloneStyleFrom(newStyle);
+                    wrappedStyle.setWrapText(true);
+                    cell.setCellStyle(wrappedStyle);
+                }
 
                 if(cell.getCellType() == CellType.STRING && targetValues.contains(cell.getStringCellValue().trim())) {
                     rowToHighlight.add(row.getRowNum());
