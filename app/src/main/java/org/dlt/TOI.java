@@ -42,16 +42,14 @@ public class TOI {
 
     public void format() {
         if (workbook != null) {
-            int sheetIndex = 0;
             for (Sheet sheet : workbook) {
                 String sheetName = sheet.getSheetName().toLowerCase();
                 if (sheetName.contains("step")) {
-                    int sheetNumber = 0;
+                    int sheetNumber = 0; // or workbook.getSheetIndex(sheet)
                     try {
                         sheetNumber = Integer.parseInt(sheetName.replace("step",""));
                     } catch (NumberFormatException ignored) {}
-
-                    workbook.setPrintArea(sheetIndex, 0, sheet.getRow(0).getLastCellNum() - 1, 0, sheet.getLastRowNum());
+                    workbook.setPrintArea(workbook.getSheetIndex(sheet), 0, (sheet.getRow(0).getLastCellNum() - 1), 0, sheet.getLastRowNum());
 
                     this.adjustSheet(sheet, sheetNumber);
                 }
@@ -134,11 +132,11 @@ public class TOI {
 
         switch (sheetNumber) {
             case 1: // GENERAL INFO
-                printSetup.setLandscape(true);
                 sheet.setColumnWidth(0, 256*34);
                 sheet.setColumnWidth(1, 256*34);
                 sheet.setColumnWidth(2, 256*25);
                 sheet.setColumnWidth(3, 256*34);
+                printSetup.setLandscape(true);
                 break;
             case 2: // SHAREHOLDERS INFO
                 sheet.setColumnWidth(0, 256*5);
