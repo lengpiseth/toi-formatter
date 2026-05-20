@@ -13,288 +13,264 @@ import org.dlt.model.RatioList;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TOI {
-    private final Logger logger = LogManager.getLogger(this.getClass());
+
+    private static final Logger logger = LogManager.getLogger(TOI.class);
+
+    private static final String RATIO_SHEET_NAME = "RATIO";
+    private static final String KHMER_FONT_NAME = "Khmer OS Siemreap";
+    private static final short DEFAULT_FONT_SIZE = 9;
+    private static final String HIGHLIGHT_COLOR_HEX = "#DDD9C4";
+
+    private static final Set<String> HIGHLIGHT_VALUES = Set.of(
+            "A0", "A13", "A28", "A29", "A37", "A42",
+            "B0", "B7", "B8", "B12", "B22", "B42", "B46", "B48",
+            "C4", "C6", "C7", "C17", "C20", "D3", "D7", "D9"
+    );
+
+    private final Map<Integer, int[]> sheetColumnWidths = Map.ofEntries(
+            Map.entry(1, new int[]{34, 34, 25, 34}),
+            Map.entry(2, new int[]{5, 17, 16, 15, 6, 16, 6, 16}),
+            Map.entry(3, new int[]{36, 15, 7, 18, 18}),
+            Map.entry(4, new int[]{60, 6, 17, 17}),
+            Map.entry(5, new int[]{60, 6, 17, 17}),
+            Map.entry(6, new int[]{60, 6, 17, 17}),
+            Map.entry(7, new int[]{60, 6, 17, 17}),
+            Map.entry(8, new int[]{60, 6, 17, 17}),
+            Map.entry(9, new int[]{12, 16, 16, 10, 10, 16, 16}),
+            Map.entry(11, new int[]{18, 19, 19, 19, 19}),
+            Map.entry(12, new int[]{37, 10, 10, 15, 15, 13, 13, 13, 13}),
+            Map.entry(13, new int[]{5, 50, 20, 20, 20, 20}),
+            Map.entry(14, new int[]{5, 18, 18, 39, 17}),
+            Map.entry(15, new int[]{11, 21, 16, 16, 16, 16}),
+            Map.entry(16, new int[]{60, 8, 28})
+    );
 
     private String outputPath;
     private Workbook workbook;
 
     public TOI init(String filePath) {
-        String newFileName = FilenameUtils.getBaseName(filePath)+" - formatted."+FilenameUtils.getExtension(filePath);
-        this.outputPath = FilenameUtils.concat(FilenameUtils.getPath(filePath), newFileName);
+        String baseName = FilenameUtils.getBaseName(filePath);
+        String extension = FilenameUtils.getExtension(filePath);
+        this.outputPath = FilenameUtils.concat(FilenameUtils.getPath(filePath),
+                baseName + " - formatted." + extension);
 
         try (FileInputStream fis = new FileInputStream(filePath)) {
-            if (FilenameUtils.isExtension(filePath, "xlsx")) {
+            if ("xlsx".equalsIgnoreCase(extension)) {
                 this.workbook = new XSSFWorkbook(fis);
             } else {
-                logger.warn("Not an XLSX file!!!");
+                logger.warn("Unsupported file format: {}", filePath);
             }
         } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.error("Failed to initialize workbook from: {}", filePath, e);
         }
-
         return this;
     }
 
     public void format() {
-        if (workbook != null) {
-            for (Sheet sheet : workbook) {
-                String sheetName = sheet.getSheetName().toLowerCase();
-                if (sheetName.contains("step")) {
-                    int sheetNumber = 0; // or workbook.getSheetIndex(sheet)
-                    try {
-                        sheetNumber = Integer.parseInt(sheetName.replace("step",""));
-                    } catch (NumberFormatException ignored) {}
-                    workbook.setPrintArea(workbook.getSheetIndex(sheet), 0, (sheet.getRow(0).getLastCellNum() - 1), 0, sheet.getLastRowNum());
+        if (workbook == null) {
+            logger.warn("Workbook is null. Nothing to format.");
+            return;
+        }
 
-                    this.adjustSheet(sheet, sheetNumber);
-                }
-            }
+        try {
+            processStepSheets();
+            createRatioSheet();
 
-            // Create ratio sheet
-            this.createRatioSheet();
-
-            try (FileOutputStream fos = new FileOutputStream(this.outputPath)) {
+            try (FileOutputStream fos = new FileOutputStream(outputPath)) {
                 workbook.write(fos);
-                workbook.close();
-            } catch (IOException e) {
-                logger.error(e.getMessage());
+                logger.info("Successfully formatted file saved to: {}", outputPath);
             }
+        } catch (IOException e) {
+            logger.error("Error during formatting", e);
+        } finally {
+            closeWorkbook();
         }
     }
 
-    private void createRatioSheet() {
-        String sheetName = "RATIO";
-        if (this.workbook.getSheet(sheetName) == null) {
-            Sheet ratioSheet = this.workbook.createSheet(sheetName);
-            this.workbook.setSheetOrder(sheetName, 0);
+    private void processStepSheets() {
+        for (Sheet sheet : workbook) {
+            String sheetName = sheet.getSheetName().toLowerCase().trim();
+            if (!sheetName.contains("step")) continue;
 
-            Row row0 = ratioSheet.createRow(0);
-            row0.createCell(0).setCellValue("RATIO NAME");
-            row0.createCell(1).setCellValue("BENCHMARK");
-            row0.createCell(2).setCellValue("DATA (N)");
-            row0.createCell(3).setCellValue("DATA (N-1)");
-            row0.createCell(4).setCellValue("DESCRIPTION");
-
-            RatioList ratioList = new RatioList();
-            for (int i=0; i < ratioList.getList().size(); i++) {
-                Ratio ratio = ratioList.getList().get(i);
-
-                CellStyle percentStyle = workbook.createCellStyle();
-                DataFormat format = workbook.createDataFormat();
-                percentStyle.setDataFormat(format.getFormat(ratio.getExcelFormatText()));
-
-                Row row = ratioSheet.createRow(i+1);
-
-                Cell ratioCell = row.createCell(0);
-                ratioCell.setCellValue(ratio.getName());
-
-                Cell ratioData = row.createCell(2);
-                ratioData.setCellFormula(ratio.getExcelFormula());
-                ratioData.setCellStyle(percentStyle);
-
-                Cell ratioDescription = row.createCell(4);
-                ratioDescription.setCellValue(ratio.getDescription());
-            }
-            ratioSheet.setColumnWidth(0, 256*40);
-            ratioSheet.setColumnWidth(1, 256*15);
-            ratioSheet.setColumnWidth(2, 256*15);
-            ratioSheet.setColumnWidth(3, 256*15);
-            ratioSheet.setColumnWidth(4, 256*50);
-
-            this.workbook.setActiveSheet(0);
+            int sheetNumber = extractSheetNumber(sheetName);
+            configurePrintSetup(sheet);
+            adjustSheetLayout(sheet, sheetNumber);
+            adjustCellFontAndHighlight(sheet);
         }
     }
 
-    private void adjustSheet(Sheet sheet, int sheetNumber) {
+    private int extractSheetNumber(String sheetName) {
+        try {
+            return Integer.parseInt(sheetName.replaceAll("[^0-9]", ""));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private void configurePrintSetup(Sheet sheet) {
         PrintSetup printSetup = sheet.getPrintSetup();
         printSetup.setPaperSize(PrintSetup.A4_PAPERSIZE);
         printSetup.setLandscape(false);
-
         sheet.setHorizontallyCenter(true);
 
-        double cmToInch = 2.54;
-
-        sheet.setMargin(PageMargin.TOP, 1/cmToInch);
-        sheet.setMargin(PageMargin.BOTTOM, 1/cmToInch);
-        sheet.setMargin(PageMargin.LEFT, 0.5/cmToInch);
-        sheet.setMargin(PageMargin.RIGHT, 0.5/cmToInch);
-        sheet.setMargin(PageMargin.HEADER, 0.5/cmToInch);
-        sheet.setMargin(PageMargin.FOOTER, 0.5/cmToInch);
-
-        ((XSSFSheet) sheet).setTabColor(new XSSFColor());
-
-        this.adjustCellFont(sheet);
-
-        switch (sheetNumber) {
-            case 1: // GENERAL INFO
-                sheet.setColumnWidth(0, 256*34);
-                sheet.setColumnWidth(1, 256*34);
-                sheet.setColumnWidth(2, 256*25);
-                sheet.setColumnWidth(3, 256*34);
-                printSetup.setLandscape(true);
-                break;
-            case 2: // SHAREHOLDERS INFO
-                sheet.setColumnWidth(0, 256*5);
-                sheet.setColumnWidth(1, 256*17);
-                sheet.setColumnWidth(2, 256*16);
-                sheet.setColumnWidth(3, 256*15);
-                sheet.setColumnWidth(4, 256*6);
-                sheet.setColumnWidth(5, 256*16);
-                sheet.setColumnWidth(6, 256*6);
-                sheet.setColumnWidth(7, 256*16);
-                break;
-            case 3: // OVERALL EMPLOYEES INFO
-                sheet.setColumnWidth(0, 256*36);
-                sheet.setColumnWidth(1, 256*15);
-                sheet.setColumnWidth(2, 256*7);
-                sheet.setColumnWidth(3, 256*18);
-                sheet.setColumnWidth(4, 256*18);
-                break;
-            case 4: // BALANCE SHEET
-            case 5: // INCOME STATEMENT
-            case 6: // COGS (Manufacturer)
-            case 7: // COGS (Non-Manufacturer)
-            case 8: // TOI Adjustments
-                sheet.setColumnWidth(0, 256*60);
-                sheet.setColumnWidth(1, 256*6);
-                sheet.setColumnWidth(2, 256*17);
-                sheet.setColumnWidth(3, 256*17);
-                break;
-            case 9: // DONATION, INTEREST, and TAXABLE PROFIT or LOST BROUGHT FORWARD
-                sheet.setColumnWidth(0, 256*12);
-                sheet.setColumnWidth(1, 256*16);
-                sheet.setColumnWidth(2, 256*16);
-                sheet.setColumnWidth(3, 256*10);
-                sheet.setColumnWidth(4, 256*10);
-                sheet.setColumnWidth(5, 256*16);
-                sheet.setColumnWidth(6, 256*16);
-                break;
-            case 10: // Tax depreciation
-                printSetup.setFitWidth((short) 1);
-                printSetup.setFitHeight((short) 0);
-                printSetup.setLandscape(true);
-
-                sheet.setAutobreaks(true);
-                sheet.setFitToPage(true);
-                break;
-            case 11:
-                sheet.setColumnWidth(0, 256*18);
-                sheet.setColumnWidth(1, 256*19);
-                sheet.setColumnWidth(2, 256*19);
-                sheet.setColumnWidth(3, 256*19);
-                sheet.setColumnWidth(4, 256*19);
-                break;
-            case 12: // TAXABLE SURPLUS OR DEDUCTION FROM SELLING/DISPOSE OF LONG-TERM ASSET
-                sheet.setColumnWidth(0, 256*37);
-                sheet.setColumnWidth(1, 256*10);
-                sheet.setColumnWidth(2, 256*10);
-                sheet.setColumnWidth(3, 256*15);
-                sheet.setColumnWidth(4, 256*15);
-                sheet.setColumnWidth(5, 256*13);
-                sheet.setColumnWidth(6, 256*13);
-                sheet.setColumnWidth(7, 256*13);
-                sheet.setColumnWidth(8, 256*13);
-                printSetup.setLandscape(true);
-                break;
-            case 13: // PROVISION
-                sheet.setColumnWidth(0, 256*5);
-                sheet.setColumnWidth(1, 256*50);
-                sheet.setColumnWidth(2, 256*20);
-                sheet.setColumnWidth(3, 256*20);
-                sheet.setColumnWidth(4, 256*20);
-                sheet.setColumnWidth(5, 256*20);
-                printSetup.setLandscape(true);
-                break;
-            case 14: // RELATED PARTIES' TRANSACTION TABLE
-                sheet.setColumnWidth(0, 256*5);
-                sheet.setColumnWidth(1, 256*18);
-                sheet.setColumnWidth(2, 256*18);
-                sheet.setColumnWidth(3, 256*39);
-                sheet.setColumnWidth(4, 256*17);
-                break;
-            case 15: // FIXED ASSETS LISTING TABLE
-                sheet.setColumnWidth(0, 256*11);
-                sheet.setColumnWidth(1, 256*21);
-                sheet.setColumnWidth(2, 256*16);
-                sheet.setColumnWidth(3, 256*16);
-                sheet.setColumnWidth(4, 256*16);
-                sheet.setColumnWidth(5, 256*16);
-                break;
-            case 16: // TAX ON INCOME FROM ORE EXTRACTION ACTIVITIES
-                sheet.setColumnWidth(0, 256*60);
-                sheet.setColumnWidth(1, 256*8);
-                sheet.setColumnWidth(2, 256*28);
-                break;
-        }
+        sheet.setMargin(PageMargin.TOP, 1.0 / 2.54);
+        sheet.setMargin(PageMargin.BOTTOM, 1.0 / 2.54);
+        sheet.setMargin(PageMargin.LEFT, 0.5 / 2.54);
+        sheet.setMargin(PageMargin.RIGHT, 0.5 / 2.54);
+        sheet.setMargin(PageMargin.HEADER, 0.5 / 2.54);
+        sheet.setMargin(PageMargin.FOOTER, 0.5 / 2.54);
     }
 
-    private void adjustCellFont(Sheet sheet) {
-        Set<String> targetValues = Set.of("A0", "A13", "A28", "A29", "A37", "A42", "B0", "B7", "B8","B12","B22","B42","B46","B48", "C4", "C6","C7","C17","C20","D3","D7","D9");
-        List<Integer> rowToHighlight = new ArrayList<>();
+    private void adjustSheetLayout(Sheet sheet, int sheetNumber) {
+        // Apply column widths from configuration
+        int[] widths = sheetColumnWidths.getOrDefault(sheetNumber, new int[0]);
+        for (int i = 0; i < widths.length; i++) {
+            sheet.setColumnWidth(i, 256 * widths[i]);
+        }
+
+        // Special cases
+        if (sheetNumber == 10) {
+            PrintSetup ps = sheet.getPrintSetup();
+            ps.setLandscape(true);
+            ps.setFitWidth((short) 1);
+            ps.setFitHeight((short) 0);
+            sheet.setAutobreaks(true);
+            sheet.setFitToPage(true);
+        } else if (List.of(1, 12, 13).contains(sheetNumber)) {
+            sheet.getPrintSetup().setLandscape(true);
+        }
+
+        ((XSSFSheet) sheet).setTabColor(new XSSFColor());
+    }
+
+    private void adjustCellFontAndHighlight(Sheet sheet) {
+        CellStyle baseStyle = createBaseCellStyle();
+        CellStyle wrappedStyle = createWrappedCellStyle(baseStyle);
+        CellStyle highlightStyle = createHighlightStyle();
+
+        List<Integer> rowsToHighlight = new ArrayList<>();
 
         for (Row row : sheet) {
-            row.setHeight((short)-1);
+            row.setHeight((short) -1); // Auto height
+
             for (Cell cell : row) {
-                CellStyle originCellStyle = cell.getCellStyle();
-                CellStyle newStyle = this.workbook.createCellStyle();
-                newStyle.cloneStyleFrom(originCellStyle);
+                if (cell == null) continue;
 
-                Font font = this.workbook.createFont();
-                font.setFontName("Khmer OS Siemreap");
-                font.setFontHeightInPoints((short) 9);
-                newStyle.setFont(font);
-                cell.setCellStyle(newStyle);
+                // Apply base font style
+                cell.setCellStyle(baseStyle);
 
-                if(row.getRowNum() == 4 && (cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3)) {
-                    CellStyle wrappedStyle = this.workbook.createCellStyle();
-                    wrappedStyle.cloneStyleFrom(newStyle);
-                    wrappedStyle.setWrapText(true);
+                // Special wrap text for row 4, columns 2 and 3
+                if (row.getRowNum() == 4 && (cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3)) {
                     cell.setCellStyle(wrappedStyle);
                 }
 
-                if(cell.getCellType() == CellType.STRING && targetValues.contains(cell.getStringCellValue().trim())) {
-                    rowToHighlight.add(row.getRowNum());
+                // Collect rows to highlight
+                if (cell.getCellType() == CellType.STRING) {
+                    String value = cell.getStringCellValue().trim();
+                    if (HIGHLIGHT_VALUES.contains(value)) {
+                        rowsToHighlight.add(row.getRowNum());
+                    }
                 }
             }
         }
 
-        for(Integer row : rowToHighlight) {
-            for(int col = 0; col < 4; col++) {
-                Cell hightlightCell = sheet.getRow(row).getCell(col);
-
-                CellStyle originCellStyle = hightlightCell.getCellStyle();
-                CellStyle hightlightCellStyle = this.workbook.createCellStyle();
-                hightlightCellStyle.cloneStyleFrom(originCellStyle);
-
-                String hexColor = "#DDD9C4";
-                byte[] rgb = hexStringToRGB(hexColor);
-                XSSFColor xssfColor = new XSSFColor(rgb);
-                hightlightCellStyle.setFillForegroundColor(xssfColor);
-                hightlightCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-                hightlightCell.setCellStyle(hightlightCellStyle);
+        // Apply highlight to first 4 columns of target rows
+        for (int rowNum : rowsToHighlight) {
+            Row row = sheet.getRow(rowNum);
+            if (row == null) continue;
+            for (int col = 0; col < 4; col++) {
+                Cell cell = row.getCell(col, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                cell.setCellStyle(highlightStyle);
             }
         }
     }
 
-    private byte[] hexStringToRGB(String hex) {
-        if(hex.startsWith("#")) {
-            hex = hex.substring(1);
-        }
-        if(hex.length() != 6) {
-            throw new IllegalArgumentException("Invalid hexadecimal string: " + hex);
-        }
+    private CellStyle createBaseCellStyle() {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setFontName(KHMER_FONT_NAME);
+        font.setFontHeightInPoints(DEFAULT_FONT_SIZE);
+        style.setFont(font);
+        return style;
+    }
 
+    private CellStyle createWrappedCellStyle(CellStyle base) {
+        CellStyle style = workbook.createCellStyle();
+        style.cloneStyleFrom(base);
+        style.setWrapText(true);
+        return style;
+    }
+
+    private CellStyle createHighlightStyle() {
+        CellStyle style = workbook.createCellStyle();
+        style.cloneStyleFrom(createBaseCellStyle());
+
+        byte[] rgb = hexToRGB(HIGHLIGHT_COLOR_HEX);
+        XSSFColor color = new XSSFColor(rgb, null); // null = no tint
+        style.setFillForegroundColor(color);
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
+    private byte[] hexToRGB(String hex) {
+        if (hex.startsWith("#")) hex = hex.substring(1);
         byte[] rgb = new byte[3];
-        rgb[0] = (byte) Integer.parseInt(hex.substring(0, 2), 16); // Red
-        rgb[1] = (byte) Integer.parseInt(hex.substring(2, 4), 16); // Green
-        rgb[2] = (byte) Integer.parseInt(hex.substring(4, 6), 16); // Blue
-
+        rgb[0] = (byte) Integer.parseInt(hex.substring(0, 2), 16);
+        rgb[1] = (byte) Integer.parseInt(hex.substring(2, 4), 16);
+        rgb[2] = (byte) Integer.parseInt(hex.substring(4, 6), 16);
         return rgb;
+    }
+
+    private void createRatioSheet() {
+        if (workbook.getSheet(RATIO_SHEET_NAME) != null) return;
+
+        Sheet ratioSheet = workbook.createSheet(RATIO_SHEET_NAME);
+        workbook.setSheetOrder(RATIO_SHEET_NAME, 0);
+
+        // Header
+        Row header = ratioSheet.createRow(0);
+        String[] headers = {"RATIO NAME", "BENCHMARK", "DATA (N)", "DATA (N-1)", "DESCRIPTION"};
+        for (int i = 0; i < headers.length; i++) {
+            header.createCell(i).setCellValue(headers[i]);
+        }
+
+        RatioList ratioList = new RatioList();
+        for (int i = 0; i < ratioList.getList().size(); i++) {
+            Ratio ratio = ratioList.getList().get(i);
+            Row row = ratioSheet.createRow(i + 1);
+
+            row.createCell(0).setCellValue(ratio.getName());
+            row.createCell(4).setCellValue(ratio.getDescription());
+
+            Cell dataCell = row.createCell(2);
+            dataCell.setCellFormula(ratio.getExcelFormula());
+
+            // Apply percentage/number format
+            CellStyle percentStyle = workbook.createCellStyle();
+            percentStyle.setDataFormat(workbook.createDataFormat().getFormat(ratio.getExcelFormatText()));
+            dataCell.setCellStyle(percentStyle);
+        }
+
+        // Set column widths
+        ratioSheet.setColumnWidth(0, 256 * 40);
+        ratioSheet.setColumnWidth(1, 256 * 15);
+        ratioSheet.setColumnWidth(2, 256 * 15);
+        ratioSheet.setColumnWidth(3, 256 * 15);
+        ratioSheet.setColumnWidth(4, 256 * 50);
+
+        workbook.setActiveSheet(0);
+    }
+
+    private void closeWorkbook() {
+        if (workbook != null) {
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                logger.warn("Error closing workbook", e);
+            }
+        }
     }
 }
